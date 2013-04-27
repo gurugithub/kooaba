@@ -43,13 +43,20 @@ module Kooaba
       return resp
     end
 
-    def make_request(url)
+    # URL is the API URL to use.  This is specific and based on Kooaba Documentation
+    # Method is the HTTP Method - GET/POST/PUT/DELETE that will be used.
+    def make_request(url, method)
       http = Net::HTTP.new(url.host, url.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       http.read_timeout = 500
+      if method == "POST"
+        req = Net::HTTP::Post.new(url.path)
+      end
 
-      req = Net::HTTP::Post.new(url.path)
+      if method == "PUT"
+        req = Net::HTTP::Put.new(url.path)
+      end
 
       req.body = @message.body
       req['date'] = Time.new.httpdate

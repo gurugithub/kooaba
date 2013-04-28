@@ -20,7 +20,7 @@ module Kooaba
 
   def self.upload(item, bucket_id, method)
     raise ArgumentError, "You need to specify the Data Key before uploading an item" if Kooaba::data_key == nil
-    UploadRequest.new(item, bucket_id).start
+    UploadRequest.new(item, bucket_id, method).start
   end
 
   def self.query(image_path)

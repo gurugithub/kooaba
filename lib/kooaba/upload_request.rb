@@ -16,11 +16,13 @@ module Kooaba
     attr_accessor :bucket_id
     attr_accessor :method
 
+
     attr_accessor :item
 
-    def initialize(item, bucket_id)
+    def initialize(item, bucket_id, method)
       @item = item
       @bucket_id = bucket_id
+      @method = method
       @message = MultipartMessage.new
       item.image_files.each do |image_path|
         content_type = `file --mime-type -b #{image_path}`
@@ -41,7 +43,11 @@ module Kooaba
       end
 
       if method == "ADD"
-        url = URI.parse(Kooaba::UPLOAD_URL + "items" + item_id + "/images")
+        url = URI.parse(Kooaba::UPLOAD_URL + "items/" + bucket_id + "/images")
+      end
+
+      if method == "DELETE"
+        url = URI.parse(Kooaba::UPLOAD_URL + "items/" + bucket_id)
       end
 
       resp = make_request(url)
@@ -52,17 +58,16 @@ module Kooaba
 
     # URL is the API URL to use.  This is specific and based on Kooaba Documentation
     # Method is the HTTP Method - GET/POST/PUT/DELETE that will be used.
-    def make_request(url, method)
+    def make_request(url)
       http = Net::HTTP.new(url.host, url.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       http.read_timeout = 500
-      if method == "CREATE"
-        req = Net::HTTP::Post.new(url.path)
-      end
 
-      if method == "ADD"
-        req = Net::HTTP::Put.new(url.path)
+      if method == "DELETE"
+        req = Net::HTTP::Delete.new(url.path)
+      else
+        req = Net::HTTP::Post.new(url.path)
       end
 
       req.body = @message.body
@@ -76,7 +81,11 @@ module Kooaba
     def parse_request(http_resp)
       case http_resp
       when Net::HTTPSuccess
-        parse_2xx(http_resp)
+        if method == "ADD"
+          puts "THIS WORKED!"
+        else
+          parse_2xx(http_resp)
+        end
       when Net::HTTPClientError
         parse_4xx(http_resp)
       when Net::HTTPServerError

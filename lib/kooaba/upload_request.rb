@@ -14,6 +14,7 @@ module Kooaba
 
     attr_accessor :message
     attr_accessor :bucket_id
+    attr_accessor :method
 
     attr_accessor :item
 
@@ -35,7 +36,13 @@ module Kooaba
     # Returns the http response from the Kooaba servers.
     #
     def start
-      url = URI.parse(Kooaba::UPLOAD_URL + "buckets/" + bucket_id + "/items")
+      if method == "CREATE"
+        url = URI.parse(Kooaba::UPLOAD_URL + "buckets/" + bucket_id + "/items")
+      end
+
+      if method == "ADD"
+        url = URI.parse(Kooaba::UPLOAD_URL + "items" + item_id + "/images")
+      end
 
       resp = make_request(url)
       parse_request(resp)
@@ -50,11 +57,11 @@ module Kooaba
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       http.read_timeout = 500
-      if method == "POST"
+      if method == "CREATE"
         req = Net::HTTP::Post.new(url.path)
       end
 
-      if method == "PUT"
+      if method == "ADD"
         req = Net::HTTP::Put.new(url.path)
       end
 
